@@ -55,9 +55,33 @@ jobs:
           where.exe cl
           cl
 
-      - name: Build application
+      - name: Clean build outputs
         shell: bash
-        run: npm run build:all
+        run: npm run clean:build
+
+      - name: Install project dependencies
+        shell: bash
+        run: npm run setup:env
+
+      - name: Build Electron TypeScript
+        shell: bash
+        run: npm run build:ts
+
+      - name: Prepare PyInstaller
+        shell: bash
+        run: npm run install:pyinstaller
+
+      - name: Build Next.js resources
+        shell: bash
+        run: npm run build:nextjs
+
+      - name: Build FastAPI resources
+        shell: bash
+        run: npm run build:fastapi
+
+      - name: Package Electron app
+        shell: bash
+        run: npm run build:electron
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
@@ -70,3 +94,13 @@ jobs:
             electron/dist/**/*.blockmap
             electron/dist/latest*.yml
           if-no-files-found: error
+
+      - name: Upload build diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: presenton-windows-build-logs
+          path: |
+            C:\Users\runneradmin\AppData\Local\npm-cache\_logs\*.log
+            electron/resources/**/*.log
+          if-no-files-found: ignore
